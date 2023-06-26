@@ -12,28 +12,31 @@
   };
 
   outputs = { self, nixpkgs, poetry2nix, ... }:
-    let pythonVer = "python310"; in
-    {
-      overlay = final: prev: {
-    
-        myapp = final.poetry2nix.mkPoetryApplication {
-          projectDir = self;
-          preferWheels = true;
-          python = final.${pythonVer};
-          groups = if final.stdenv.isDarwin then [ "macos" ] else [ "linux" ];
-        };
+    let
+      eiffelOverlay = (final: prev:
+        let
+          eiffelConfig = {
+            projectDir = self;
+            preferWheels = true;
+            python = final.${pythonVer};
+            groups = if final.stdenv.isDarwin then [ "macos" ] else [ "linux" ];
+            overrides = prev.poetry2nix.defaultPoetryOverrides.extend (self: super: {
+              tensorflow-io-gcs-filesystem = super.tensorflow-io-gcs-filesystem.overrideAttrs (old: {
+                buildInputs = old.buildInputs ++ [ prev.libtensorflow ];
+              });
+            });
+          };
+        in
+        {
 
-        myappEnv = final.poetry2nix.mkPoetryEnv {
-          projectDir = self;
-          preferWheels = true;
-          python = final.${pythonVer};
-          editablePackageSources = { myapp = ./.; };
-          groups = [ "dev" ] ++ (if final.stdenv.isDarwin then [ "macos" ] else [ "linux" ]);
-        };
+          eiffel = final.poetry2nix.mkPoetryApplication eiffelConfig;
 
-        poetry = (prev.poetry.override { python = final.${pythonVer}; });
-      };
-    } // (let
+          eiffelEnv = final.poetry2nix.mkPoetryEnv eiffelConfig // {
+            editablePackageSources = { eiffel = ./.; };
+          };
+
+          poetry = (prev.poetry.override { python = final.${pythonVer}; });
+        });
 
       forEachSystem = systems: func: nixpkgs.lib.genAttrs systems (system:
         func (import nixpkgs {
@@ -41,19 +44,33 @@
           config.allowUnfree = true;
           overlays = [
             poetry2nix.overlay
-            self.overlay
+            eiffelOverlay
           ];
         })
       );
 
       forAllSystems = func: (forEachSystem [ "x86_64-linux" "aarch64-darwin" ] func);
 
-    in {
+      pythonVer =
+        let
+          versionList = builtins.filter builtins.isString
+            (builtins.split ''\.''
+              (builtins.elemAt
+                (builtins.match ''^[>=~^]*([0-9]+(\.[0-9]+)*)(,[0-9<=.]*)?$''
+                  (builtins.fromTOML (builtins.readFile ./pyproject.toml)).tool.poetry.dependencies.python
+                ) 0
+              )
+            );
+        in
+        "python${builtins.elemAt versionList 0}${builtins.elemAt versionList 1}";
+
+    in
+    {
       devShells = forAllSystems (pkgs: with pkgs; {
         default = mkShellNoCC {
           packages = [
             # this package            
-            myappEnv
+            eiffelEnv
 
             # development dependencies
             poetry
@@ -61,16 +78,21 @@
 
           shellHook = ''
             export PYTHONPATH=${pkgs.${pythonVer}}
+            export LD_LIBRARY_PATH=${ lib.strings.concatStringsSep ":" [
+              "${cudaPackages.cudatoolkit}/lib"
+              "${cudaPackages.cudatoolkit.lib}/lib"
+              "${cudaPackages.cudnn}/lib"
+            ]}:$LD_LIBRARY_PATH
           '';
         };
 
       });
 
       packages = forAllSystems (pkgs: {
-        default = pkgs.myapp;
-        
+        default = pkgs.eiffel;
+
         poetry = pkgs.poetry;
       });
 
-    });
+    };
 }
