@@ -19,7 +19,7 @@
             projectDir = self;
             preferWheels = true;
             python = final.${pythonVer};
-            extras = if final.stdenv.isDarwin then [ "macos" ] else [ "linux" ];
+            groups = if final.stdenv.isDarwin then [ "darwin" ] else [ "linux" ];
             overrides = prev.poetry2nix.defaultPoetryOverrides.extend (self: super: {
               tensorflow-io-gcs-filesystem = super.tensorflow-io-gcs-filesystem.overrideAttrs (old: {
                 buildInputs = old.buildInputs ++ [ prev.libtensorflow ];
@@ -78,12 +78,13 @@
 
           shellHook = ''
             export PYTHONPATH=${pkgs.${pythonVer}}
+          '' + (if stdenv.isLinux then ''
             export LD_LIBRARY_PATH=${ lib.strings.concatStringsSep ":" [
               "${cudaPackages.cudatoolkit}/lib"
               "${cudaPackages.cudatoolkit.lib}/lib"
               "${cudaPackages.cudnn}/lib"
-            ]}:$LD_LIBRARY_PATH
-          '';
+            ]}
+          '' else "") + ":$LD_LIBRARY_PATH";
         };
 
       });
