@@ -19,7 +19,7 @@
             projectDir = self;
             preferWheels = true;
             python = final.${pythonVer};
-            groups = if final.stdenv.isDarwin then [ "macos" ] else [ "linux" ];
+            extras = if final.stdenv.isDarwin then [ "macos" ] else [ "linux" ];
             overrides = prev.poetry2nix.defaultPoetryOverrides.extend (self: super: {
               tensorflow-io-gcs-filesystem = super.tensorflow-io-gcs-filesystem.overrideAttrs (old: {
                 buildInputs = old.buildInputs ++ [ prev.libtensorflow ];
