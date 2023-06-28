@@ -1,4 +1,4 @@
-from myapp.module import list_gpus
+from eiffel.module import list_gpus
 
 
 def test_list_gpus(capfd):
