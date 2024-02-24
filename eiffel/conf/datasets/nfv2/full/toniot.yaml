@@ -1,0 +1,10 @@
+# @package datasets.toniot
+
+# NF-V2 ToN_IoT configuration for load_data
+_target_: eiffel.datasets.nfv2.load_data
+path: ${gitdir:}/data/nfv2/origin/NF-ToN-IoT-v2.csv.gz
+
+# Passed to the Dataset
+key: toniot
+_default_target: [ injection ]
+seed: ${seed}

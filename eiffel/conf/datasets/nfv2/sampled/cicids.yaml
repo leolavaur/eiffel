@@ -1,0 +1,10 @@
+# @package datasets.cicids
+
+# NF-V2 CIC-IDS configuration for load_data
+_target_: eiffel.datasets.nfv2.load_data
+path: ${gitdir:}/data/nfv2/sampled/cicids.csv.gz
+
+# Passed to the Dataset
+key: cicids
+_default_target: [ DoS ]
+seed: ${seed}

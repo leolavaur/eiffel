@@ -1,0 +1,3 @@
+_target_: flwr.server.strategy.fedavg.FedAvg
+initial_parameters: null
+_partial_: true

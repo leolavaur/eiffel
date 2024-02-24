@@ -1,0 +1,43 @@
+# eiffel -- Evaluation framework for FL-based intrusion detection using Flower. 
+# ---------
+# 
+# Logging configuration for eiffel.
+# 
+# We use Hydra to override the logging configuration for eiffel. Hydra's logging
+# management is based on Python's logging module, and the content of this file will be
+# passed to the `logging.config.dictConfig()` function. By default, Hydra will display
+# logs on the console (via `stdout`), and save them to a file in the output directory.
+# 
+# Eiffel uses a custom formatter to display logs in color on the console, and move
+# logging to `stderr` instead. The file handler is kept as is.
+# 
+# See:
+# - https://hydra.cc/docs/tutorials/basic/running_your_app/logging/
+# - https://hydra.cc/docs/configure_hydra/logging/
+# - https://docs.python.org/3/library/logging.config.html#dictionary-schema-details
+
+
+version: 1
+
+formatters:
+  colored:
+    (): eiffel.utils.logging.ColoredFormatter
+    verbose_loggers: ${hydra.verbose}
+  simple:
+    format: '%(asctime)s [%(levelname)s] %(name)s:%(filename)s:%(lineno)d > %(message)s'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: colored
+    stream: ext://sys.stderr
+  file:
+    class: logging.FileHandler
+    formatter: simple
+    filename: ${hydra.runtime.output_dir}/${hydra.job.name}.log
+
+root:
+  level: INFO
+  handlers: [console, file]
+
+disable_existing_loggers: false

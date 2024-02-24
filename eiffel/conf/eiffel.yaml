@@ -1,0 +1,105 @@
+# eiffel -- Evaluation framework for FL-based intrusion detection using Flower. 
+# ---------
+# 
+# Configuration for eiffel.
+# 
+# We use Hydra to pass parameters to eiffel. Hydra's configuration is composable and
+# overridable. This file is the main entrypoint that is distributed with Eiffel. It
+# contains default values for most parameters, and is meant to be overriden by users.
+# 
+# Users SHOULD create a `config.yaml` file in their project directory, and use the
+# `--config-dir` option to add their working directory to Hydra's search path.
+# Otherwise, users can also override parameters on the command line using the
+# `<config>=<option>` syntax.
+#
+# See:
+# - https://hydra.cc/docs/advanced/override_grammar/basic/
+
+
+# User API.
+# ---------
+
+# Optional parameters.
+num_attackers: 0
+num_clients: 10
+num_rounds: 10
+num_epochs: 10
+batch_size: 512
+seed: 1138
+
+# Attack parameters.
+attacks:
+  - type: ${poisoning.type}  # untargeted or targeted
+    profile: ${poisoning.profile}
+
+# Distribution parameters.
+pools:
+  - n_benign: ${num_clients}
+    n_malicious: ${num_attackers}
+
+# Runtime configuration.
+experiment:
+  _target_: eiffel.core.experiment.Experiment
+  seed: ${seed}
+  num_rounds: ${num_rounds}
+  num_epochs: ${num_epochs}
+  batch_size: ${batch_size}
+  
+  strategy: ${strategy}
+  model_fn: ${model}
+  partitioner: ${partitioner}
+
+  pools: "${pools}"
+
+  attacks: "${attacks}"
+
+  datasets: "${oc.dict.values: datasets}"
+
+
+# Loaded configuration for CLI overrides.
+defaults:
+  - _self_
+
+  #- datasets: ???
+
+  - strategy: fedavg
+  - model: popoola
+  - partitioner: dumb
+
+  - poisoning/profile: loud
+  - poisoning/type: untargeted
+
+  # Defaults below are framework-related, and have no impact on the experiment.
+  - callbacks:
+    - plot # TODO: the plot callback is broken since metrics have been modified.
+
+  # Use a `config.yaml` file to override user configuration, like the number of clients.
+  # Use `setup` to override experiment configuration, like datasets or attack scenarios.
+  # `setup`s and `config.yaml` are not mutually exclusive, and shall be considered as
+  # complementary: the `setup` override provides per-experiment configurations, while
+  # the config file per-project configuration.
+  # Note: defining new defaults options in `config.yaml` is not supported. New
+  # defaults can be added from the command line using the `+<default>=<name>` syntax.
+  - optional .@_global_: config
+  - optional setup: null
+  - override hydra/job_logging: eiffel
+
+hydra:
+  job:
+    chdir: True
+    config:
+      override_dirname:
+        exclude_keys:
+          # Can be used to exclude keys that are irrelevant to the experiment, such as 
+          # the seed, or any key that would be common to this specific experiment.
+          - callbacks
+
+  run:
+    # TODO: add overrides in the output path
+    dir: ${gitdir:}/outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+
+  sweep:
+    dir: ${gitdir:}/multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: ${sanitize:${hydra.job.override_dirname}}
+
+

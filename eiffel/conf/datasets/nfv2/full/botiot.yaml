@@ -1,0 +1,10 @@
+# @package datasets.botiot
+
+# NF-V2 Bot-IoT configuration for load_data
+_target_: eiffel.datasets.nfv2.load_data
+path: ${gitdir:}/data/nfv2/origin/NF-BoT-IoT-v2.csv.gz
+
+# Passed to the Dataset
+key: botiot
+_default_target: [ Reconnaissance ]
+seed: ${seed}

@@ -1,0 +1,7 @@
+_target_: eiffel.datasets.partitioners.NIIDClassPartitioner
+_partial_: true
+
+class_column: "Attack"
+preserved_classes: ["Benign"]
+n_drop: 2
+seed: ${seed}

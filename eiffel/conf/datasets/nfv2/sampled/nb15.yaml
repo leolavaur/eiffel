@@ -1,0 +1,10 @@
+# @package datasets.nb15
+
+# NF-V2 CIC-IDS configuration for load_data
+_target_: eiffel.datasets.nfv2.load_data
+path: ${gitdir:}/data/nfv2/sampled/nb15.csv.gz
+
+# Passed to the Dataset
+key: nb15
+_default_target: [ Analysis ]  # Warning, extremely poor performance.
+seed: ${seed}

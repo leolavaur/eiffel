@@ -1,0 +1,4 @@
+# @package hydra.callbacks.plot
+_target_: eiffel.callbacks.plot.PlotCallback
+input: metrics.json
+output: plot.png
