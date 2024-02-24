@@ -4,6 +4,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.11";
+    #nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
     poetry2nix = {
       url = "github:nix-community/poetry2nix";
@@ -32,7 +33,7 @@
           eiffel = final.poetry2nix.mkPoetryApplication eiffelConfig;
 
           eiffelEnv = final.poetry2nix.mkPoetryEnv eiffelConfig // {
-            editablePackageSources = { eiffel = ./.; };
+            editablePackageSources = { eiffel = ./eiffel; };
           };
 
           poetry = (prev.poetry.override { python = final.${pythonVer}; });
@@ -77,7 +78,7 @@
           ];
 
           shellHook = ''
-            export PYTHONPATH=${pkgs.${pythonVer}}
+            # export PYTHONPATH=${pkgs.eiffelEnv}
           '' + (if stdenv.isLinux then ''
             export LD_LIBRARY_PATH=${ lib.strings.concatStringsSep ":" [
               "${cudaPackages.cudatoolkit}/lib"

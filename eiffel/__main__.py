@@ -1,11 +1,11 @@
-import sys
+import hydra
+from omegaconf import DictConfig, OmegaConf
 
-from . import main
 
-rc = 1
-try:
+@hydra.main(config_name="eiffel", version_base="1.3")
+def main(cfg: DictConfig):
+    print(OmegaConf.to_yaml(cfg))
+
+
+if __name__ == "__main__":
     main()
-    rc = 0
-except Exception as e:
-    print("Error: %s" % e, file=sys.stderr)
-sys.exit(rc)
