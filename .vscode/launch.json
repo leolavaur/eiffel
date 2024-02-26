@@ -1,15 +1,27 @@
 {
-    // Utilisez IntelliSense pour en savoir plus sur les attributs possibles.
-    // Pointez pour afficher la description des attributs existants.
-    // Pour plus d'informations, visitez : https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Module Python",
+            "name": "Eiffel",
             "type": "python",
             "request": "launch",
             "module": "eiffel",
-            "justMyCode": true
+            "justMyCode": true,
+        },
+        {
+            "name": "Eiffel (external libs)",
+            "type": "python",
+            "request": "launch",
+            "module": "eiffel",
+            "justMyCode": false,
+        },
+        {
+            "name": "Eiffel (fl-ids)",
+            "type": "python",
+            "request": "launch",
+            "module": "eiffel",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/../fl-ids",
         }
-    ]
+    ],
 }

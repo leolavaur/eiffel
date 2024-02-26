@@ -9,8 +9,9 @@ os.environ["OMP_NUM_THREADS"] = "64"
 
 from omegaconf import OmegaConf
 
-from eiffel.utils.resolvers import get_git_root
+from eiffel.utils.resolvers import get_git_root, get_eiffel_anchor
 
 OmegaConf.register_new_resolver("gitdir", get_git_root)
+OmegaConf.register_new_resolver("anchor", get_eiffel_anchor)
 OmegaConf.register_new_resolver("if", lambda cond, a, b: a if cond else b)
 OmegaConf.register_new_resolver("sanitize", lambda s: s.replace("/", "_"))
