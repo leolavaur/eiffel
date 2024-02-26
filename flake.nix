@@ -52,7 +52,7 @@
           let
             eiffelConfig = {
               projectDir = ./.;
-              pyproject = poetryPath + /pyproject.toml;
+              pyproject = final.lib.debug.traceVal (poetryPath + /pyproject.toml);
               poetrylock = poetryPath + /poetry.lock;
               preferWheels = true;
               python = final.${pythonVer};
