@@ -42,17 +42,13 @@
               (builtins.split ''\.'' firstVersion);
             verstionMajor = builtins.elemAt versionAsList 0;
             verstionMinor = builtins.elemAt versionAsList 1;
-          in
-          # Print the selected Python version when passing the --trace-verbose flag.
-          builtins.traceVerbose 
-            "EIFFEL > Found Python version: python${verstionMajor}${verstionMinor}" 
-            "python${verstionMajor}${verstionMinor}";
+          in "python${verstionMajor}${verstionMinor}";
 
         eiffelOverlay = (final: prev:
           let
             eiffelConfig = {
               projectDir = ./.;
-              pyproject = final.lib.debug.traceVal (poetryPath + /pyproject.toml);
+              pyproject = poetryPath + /pyproject.toml;
               poetrylock = poetryPath + /poetry.lock;
               preferWheels = true;
               python = final.${pythonVer};
@@ -84,10 +80,7 @@
           in
           {
 
-            eiffel = builtins.traceVerbose (
-              "EIFFEL > Using poetry config at: " + (builtins.toString poetryPath)
-            
-            ) final.poetry2nix.mkPoetryApplication (eiffelConfig // 
+            eiffel = final.poetry2nix.mkPoetryApplication (eiffelConfig // 
                 (final.lib.attrsets.optionalAttrs (final.stdenv.isLinux) {
                   LD_LIBRARY_PATH = final.lib.strings.concatStringsSep ":" (with final; [
                     "${cudaPackages.cudatoolkit}/lib"
