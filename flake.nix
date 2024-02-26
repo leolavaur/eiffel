@@ -98,7 +98,7 @@
                 })
               );
 
-            eiffelEnv = final.poetry2nix.mkPoetryEnv (eiffelConfig // {
+            eiffel-env = final.poetry2nix.mkPoetryEnv (eiffelConfig // {
               editablePackageSources = { eiffel = ./.; };
             });
 
@@ -112,14 +112,14 @@
           default = with pkgs; mkShellNoCC {
             packages = [
               # this package            
-              eiffelEnv
+              eiffel-env
 
               # development dependencies
               poetry
             ];
 
             shellHook = ''
-              export EIFFEL_PYTHON_PATH=${eiffelEnv}/bin/python
+              export EIFFEL_PYTHON_PATH=${eiffel-env}/bin/python
             '' + (if stdenv.isLinux then ''
               export LD_LIBRARY_PATH=${ lib.strings.concatStringsSep ":" [
                   "${cudaPackages.cudatoolkit}/lib"
@@ -134,8 +134,14 @@
 
         };
 
-        packages = {
-          default = pkgs.eiffel;
+        packages = rec {
+          eiffel = pkgs.eiffel;
+          eiffel-env = pkgs.eiffel-env;
+          default = eiffel;
+        };
+
+        overlays = {
+          eiffel = eiffelOverlay;
         };
 
       }

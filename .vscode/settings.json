@@ -1,18 +1,41 @@
 {
-    "isort.args": [
-        "--profile",
-        "black"
-    ],
-    "python.formatting.provider": "none",
-    "python.analysis.typeCheckingMode": "basic",
-    "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
+    "python.defaultInterpreterPath": "${env:EIFFEL_PYTHON_PATH}",
+    "python.terminal.launchArgs": [
+        "-m",
+        "IPython",
+        "--no-autoindent",
+        "--no-confirm-exit",
+        "--ext=autoreload",
+        "-c",
+        "get_ipython().run_line_magic('autoreload', '2'); get_ipython().run_line_magic('clear', '')",
+        "-i"
+    ],
+    "python.analysis.stubPath": "",
+    "black-formatter.importStrategy": "fromEnvironment",
+    "black-formatter.args": [
+        "--preview"
+    ],
+    "ruff.path": [
+        "ruff"
+    ],
     "[python]": {
         "editor.formatOnSave": true,
-        "editor.formatOnPaste": false,
+        "editor.defaultFormatter": "ms-python.black-formatter",
         "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
             "source.organizeImports": "explicit"
         },
-        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnPaste": false,
     },
+    "python.analysis.typeCheckingMode": "basic",
+    "notebook.formatOnSave.enabled": true,
+    "notebook.codeActionsOnSave": {
+        "source.fixAll": true,
+        "source.organizeImports": true
+    },
+    "python.testing.pytestArgs": [
+        "libs/eiffel/eiffel"
+    ],
+    "python.testing.unittestEnabled": false,
 }
