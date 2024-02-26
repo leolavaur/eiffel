@@ -96,10 +96,12 @@ hydra:
 
   run:
     # TODO: add overrides in the output path
-    dir: ${gitdir:}/outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    #dir: ${gitdir:}/outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    dir: ./outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
 
   sweep:
-    dir: ${gitdir:}/multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    #dir: ${gitdir:}/multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    dir: ./multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
     subdir: ${sanitize:${hydra.job.override_dirname}}
 
 

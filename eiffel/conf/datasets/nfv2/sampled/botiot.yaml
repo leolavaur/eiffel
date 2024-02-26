@@ -2,7 +2,7 @@
 
 # NF-V2 Bot-IoT configuration for load_data
 _target_: eiffel.datasets.nfv2.load_data
-path: ${gitdir:}/data/nfv2/sampled/botiot.csv.gz
+path: ./data/nfv2/sampled/botiot.csv.gz
 
 # Passed to the Dataset
 key: botiot
