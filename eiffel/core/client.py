@@ -11,7 +11,7 @@ from typing import Any, Callable, Optional, cast
 import numpy as np
 import pandas as pd
 import ray
-from flwr.client import NumPyClient
+from flwr.client import NumPyClient, Client
 from flwr.common import Config, Scalar
 from flwr.simulation.ray_transport.utils import enable_tf_gpu_growth
 from keras.callbacks import History
@@ -268,7 +268,7 @@ def mk_client(
     cid: EiffelCID,
     mappings: dict[EiffelCID, tuple[ray.ObjectRef, Optional[PoisonIns], keras.Model]],
     seed: int,
-) -> EiffelClient:
+) -> Client:
     """Return a client based on its CID."""
     if cid not in mappings:
         raise ValueError(f"Client `{cid}` not found in mappings.")
@@ -281,7 +281,7 @@ def mk_client(
         model_fn(ray.get(handle.get.remote("train")).X.shape[1]),
         seed=seed,
         poison_ins=attack,
-    )
+    ).to_client()
 
 
 def mean_absolute_error(x_orig: pd.DataFrame, x_pred: pd.DataFrame) -> np.ndarray:
