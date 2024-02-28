@@ -54,7 +54,7 @@ def load_metric(
     return [get_value(d, dotpath) for d in average(res).values()]
 
 
-def search_results(path: str, sort: bool = True, **conditions: str) -> list[str]:
+def search_results(path: str, sort: bool = True, **conditions: str | int) -> list[str]:
     """
     Search corresponding results from the given path.
 
