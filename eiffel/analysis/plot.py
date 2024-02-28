@@ -14,20 +14,18 @@ from matplotlib.axes import Axes
 
 MARKERS = itertools.cycle(["o", "D", "v", "*", "+", "^", "p", ".", "P", "<", ">", "X"])
 LINESTYLES = itertools.cycle(["-", "--", "-.", ":"])
-COLORS = itertools.cycle(
-    [
-        "#1f77b4",
-        "#ff7f0e",
-        "#2ca02c",
-        "#d62728",
-        "#9467bd",
-        "#8c564b",
-        "#e377c2",
-        "#7f7f7f",
-        "#bcbd22",
-        "#17becf",
-    ]
-)
+COLORS = itertools.cycle([
+    "#1f77b4",
+    "#ff7f0e",
+    "#2ca02c",
+    "#d62728",
+    "#9467bd",
+    "#8c564b",
+    "#e377c2",
+    "#7f7f7f",
+    "#bcbd22",
+    "#17becf",
+])
 
 
 class Plotable(NamedTuple):
@@ -95,35 +93,36 @@ def envelope(
     )
 
 
-def scale(plotables: list[Plotable], length: int) -> list[Plotable]:
+def scale(plotables: list[Plotable], length: int = 0) -> list[Plotable]:
     """Scale the plotables to the given length.
 
     Each result length varies depending on the number of rounds. This function scales
-    results to the given length by repeating values. Thus, the results can only be
-    scaled to a multiple of the original length.
+    results to the given length by numpy interpolation. If no length is given, the
+    maximum length in the plotables is used.
 
     Parameters
     ----------
     plotables : Plotable
         Plotables to scale.
     length : int
-        Length to scale to. Must be a multiple of the original length.
+        Length to scale to.
 
     Returns
     -------
     list[Plotable]
         Scaled plotables.
     """
+    if length == 0:
+        length = max(len(p.values) for p in plotables)
     if length <= 0:
         raise ValueError("Length must be positive.")
     ret = []
+    x_target = np.arange(0, length)
     for p in plotables:
-        if length % len(p.values) != 0:
-            raise ValueError(
-                f"Length {length} is not a multiple of {len(p.values)} for {p.name}."
-            )
-        mul = int(length / len(p.values))
-        ret.append(Plotable(p.name, list(chain(*(([v] * mul) for v in p.values)))))
+        x = np.arange(0, len(p.values))
+        interp = np.interp(x_target, x * length / len(p.values), p.values)
+        assert len(interp) == length
+        ret.append(Plotable(p.name, interp.tolist()))
 
     return ret
 
