@@ -3,7 +3,7 @@
 import logging
 import re
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, cast, overload
 
 import numpy as np
 import pandas as pd
@@ -20,18 +20,19 @@ logger = logging.getLogger(__name__)
 
 
 def average(ss: list[dict] | dict[str, dict]) -> dict:
-    """Compute the mean, metric per metric and for each round, of a list of Series.
+    """Calculate the average of a list of dictionaries or a dictionary of dictionaries.
 
     Parameters
     ----------
-    ss : List[Series] | dict[str, Series]
-        Series to average. If a dict is given, the values are considered to be the
-        Series, and the keys are ignored.
+    ss : list[dict] | dict[str, dict]
+        The input data. It can be either a list of dictionaries or a dictionary of
+        dictionaries. In the latter case, the keys are ignored and the values are
+        assumed to be the dictionaries to average.
 
     Returns
     -------
-    Series
-        The mean of the Series.
+    dict
+        The average of the input data.
     """
     lst = ss if isinstance(ss, list) else list(ss.values())
 
@@ -41,17 +42,54 @@ def average(ss: list[dict] | dict[str, dict]) -> dict:
     return dict_avg(lst)
 
 
+@overload
+def load_metric(
+    path: str, dotpath: str, attr: str = ..., with_malicious: bool = ...
+) -> list[float]: ...
+
+
+@overload
+def load_metric(
+    path: str, dotpath: list[str], attr: str = ..., with_malicious: bool = ...
+) -> dict[str, list[float]]: ...
+
+
 def load_metric(
     path: str,
-    dotpath: str,
+    dotpath: list[str] | str,
     attr: str = "distributed",
     with_malicious: bool = False,
-) -> list[float]:
-    """Load the metrics from the given path."""
+) -> list[float] | dict[str, list[float]]:
+    """Load the metrics from the given path.
+
+    Parameters
+    ----------
+    path : str
+        The path to the results.
+    dotpaths : list[str] | str
+        The dotpaths to the metrics to load. If a list is provided, the function will
+        return a dictionary with the dotpaths as keys and the corresponding metrics as
+        values. If a single dotpath is provided, the function will return the metric
+        over time (round per round).
+    attr : str, optional
+        The attribute to load from the results, by default "distributed".
+    with_malicious : bool, optional
+        Whether to include the malicious participants in the results, by default False.
+
+    Returns
+    -------
+    list[float] | dict[str, list[float]]
+        The metric over time (round per round) if a single dotpath is provided, a
+        dictionary with the dotpaths as keys and the corresponding metrics as values
+        otherwise.
+    """
     res = getattr(Results.from_path(path), attr)
     if not with_malicious:
         res = {k: v for k, v in res.items() if "malicious" not in k}
-    return [get_value(d, dotpath) for d in average(res).values()]
+    avgs = average(res).values()
+    if isinstance(dotpath, str):
+        return [get_value(d, dotpath) for d in avgs]
+    return {dotpath: [get_value(d, dotpath) for d in avgs] for dotpath in dotpath}
 
 
 def search_results(path: str, sort: bool = True, **conditions: str | int) -> list[str]:
