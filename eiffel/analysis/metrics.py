@@ -3,7 +3,7 @@
 import logging
 import re
 from pathlib import Path
-from typing import Any, cast, overload
+from typing import Any, Iterable, cast, overload
 
 import numpy as np
 import pandas as pd
@@ -50,13 +50,13 @@ def load_metric(
 
 @overload
 def load_metric(
-    path: str, dotpath: list[str], attr: str = ..., with_malicious: bool = ...
+    path: str, dotpath: Iterable[str], attr: str = ..., with_malicious: bool = ...
 ) -> dict[str, list[float]]: ...
 
 
 def load_metric(
     path: str,
-    dotpath: list[str] | str,
+    dotpath: Iterable[str] | str,
     attr: str = "distributed",
     with_malicious: bool = False,
 ) -> list[float] | dict[str, list[float]]:
@@ -135,6 +135,9 @@ def search_results(path: str, sort: bool = True, **conditions: str | int) -> lis
         ):
             metrics.append(d.as_posix())
 
+    if len(metrics) == 0:
+        raise ValueError(f"No results found with conditions {conditions}.")
+
     return sorted(metrics) if sort else metrics
 
 
@@ -176,11 +179,15 @@ def load_asr(
     if len(target) > 0:
         aasrs = []
         for t in target:
-            aasrs.append(load_metric(path, dotpath=f"{t}.missrate"))
+            aasrs.append(
+                load_metric(path, dotpath=f"{t}.missrate", with_malicious=False)
+            )
 
         aasr = np.mean(aasrs, axis=0)
     else:
-        aasr = 1 - np.array(load_metric(path, dotpath="global.accuracy"))
+        aasr = 1 - np.array(
+            load_metric(path, dotpath="global.accuracy", with_malicious=False)
+        )
 
     if reference:
         ref = np.array(reference)
@@ -217,8 +224,8 @@ def choices(path: str) -> dict[str, list[str]]:
     n_combinations = int(np.prod([len(v) for v in choices.values()]))
     if (n_dirs := len(dirs)) < n_combinations:
         logger.warning(
-            f"Not all theoritical combinations are covered: {n_combinations} possibles,"
-            f" {n_dirs} found."
+            f"{path}: Not all theoritical combinations are covered:"
+            f" {n_combinations} possibles, {n_dirs} found."
         )
     return choices
 
@@ -256,6 +263,8 @@ def dict_avg(ss: list[dict]) -> dict:
     for k in ss[0].keys():
         if isinstance(ss[0][k], dict):
             d[k] = dict_avg([s[k] for s in ss])
+        elif isinstance(ss[0][k], list):
+            d[k] = np.mean([s[k] for s in ss], axis=0).tolist()
         else:
             d[k] = np.mean([s[k] for s in ss])
     return d
