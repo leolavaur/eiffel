@@ -56,7 +56,7 @@ def load_metric(
 
 def load_metric(
     path: str,
-    dotpath: Iterable[str] | str,
+    dotpath: Iterable[str] | str = "global.accuracy",
     attr: str = "distributed",
     with_malicious: bool = False,
 ) -> list[float] | dict[str, list[float]]:
@@ -90,6 +90,104 @@ def load_metric(
     if isinstance(dotpath, str):
         return [get_value(d, dotpath) for d in avgs]
     return {dotpath: [get_value(d, dotpath) for d in avgs] for dotpath in dotpath}
+
+
+def load_df(
+    paths: Iterable[str], dotpath: str = "global.accuracy", attr: str = "distributed"
+) -> pd.DataFrame:
+    """Load the selected metrics from the given paths and return them as a DataFrame.
+
+    Each path is expected to be a directory containing the results of a single run. The
+    function will load the metrics from each path and return them as a DataFrame, with
+    each runs' metrics as rows and the rounds as columns. The DataFrame is indexed by
+    the run's distinguishing options. The common options are used as the dataset's name.
+    If the path's name does not contain options (as exported by Hydra), the path itself
+    is used as the index.
+
+    Parameters
+    ----------
+    paths : list[str]
+        The paths to the results.
+    dotpath : str
+        The dotpath to the metrics to load.
+    attr : str, optional
+        The attribute to load from the results, by default "distributed".
+
+    Returns
+    -------
+    pd.DataFrame
+        The metrics over time (round per round) as a DataFrame.
+    """
+    names = [Path(p).name for p in paths]
+    common, distinguishing = conditions(names)
+    metrics = [load_metric(p, dotpath, attr) for p in paths]
+    if not all(len(m) == len(metrics[0]) for m in metrics):
+        raise ValueError("Metrics have different lengths.")
+    df = pd.DataFrame(metrics, index=distinguishing)
+    df.columns.name = "Round"
+    df.Name = common
+    return df
+
+
+def scale_df(df: pd.DataFrame, length: int = 0) -> pd.DataFrame:
+    """Scale the DataFrame to the given length.
+
+    Each result length varies depending on the number of rounds. This function scales
+    results to the given length by numpy interpolation. If no length is given, the
+    maximum length in the DataFrame is used.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The DataFrame to scale.
+    length : int, optional
+        Length to scale to, by default 0.
+
+    Returns
+    -------
+    pd.DataFrame
+        Scaled DataFrame.
+    """
+    if length == 0:
+        length = max(df.count(axis=1))
+    if length <= 0:
+        raise ValueError("Length must be positive.")
+    ret = pd.DataFrame(index=df.index, columns=range(length))
+    x_target = np.arange(0, length)
+    for i, row in df.iterrows():
+        x = np.arange(0, row.count())
+        interp = np.interp(x_target, x * length / row.count(), row[row.notna()])
+        assert len(interp) == length
+        ret.loc[cast(str, i)] = interp
+    return ret.astype(float)
+
+
+def conditions(names: list[str]) -> tuple[str, list[str]]:
+    """Extract the conditions from the given names.
+
+    Parameters
+    ----------
+    names : list[str]
+        The names to extract the conditions from, as exported by Hydra. Conditions are
+        of the form `(+)?name=value`, where `name` is the name of the option and `value`
+        is the value of the option.
+
+    Returns
+    -------
+    str
+        The common conditions, separated by commas.
+    list[str]
+        The distinguishing conditions for each name. The order is the same as the order
+        of the input names.
+    """
+    options = [[o.strip("+") for o in n.split(",")] for n in names]
+    common = set(options[0])
+
+    for o in options[1:]:
+        common &= set(o)
+
+    distinguishing = [",".join(list(set(o) - common)) for o in options]
+    return ",".join(common), distinguishing
 
 
 def search_results(path: str, sort: bool = True, **conditions: str | int) -> list[str]:
