@@ -93,7 +93,10 @@ def load_metric(
 
 
 def load_df(
-    paths: Iterable[str], dotpath: str = "global.accuracy", attr: str = "distributed"
+    paths: Iterable[str],
+    dotpath: str = "global.accuracy",
+    attr: str = "distributed",
+    with_malicious: bool = False,
 ) -> pd.DataFrame:
     """Load the selected metrics from the given paths and return them as a DataFrame.
 
@@ -120,7 +123,7 @@ def load_df(
     """
     names = [Path(p).name for p in paths]
     common, distinguishing = conditions(names)
-    metrics = [load_metric(p, dotpath, attr) for p in paths]
+    metrics = [load_metric(p, dotpath, attr, with_malicious) for p in paths]
     if not all(len(m) == len(metrics[0]) for m in metrics):
         raise ValueError("Metrics have different lengths.")
     df = pd.DataFrame(metrics, index=distinguishing)
