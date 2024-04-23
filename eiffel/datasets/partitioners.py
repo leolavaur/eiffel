@@ -146,7 +146,7 @@ class NIIDClassPartitioner(Partitioner):
         class_column: str,
         preserved_classes: list[str],
         *args,
-        n_drop: int = 1,
+        n_drop: int = 0,
         n_keep: int = 0,
         df_key: str = "m",
         **kwargs,
