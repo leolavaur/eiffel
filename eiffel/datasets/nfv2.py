@@ -89,7 +89,7 @@ class NFV2Dataset(Dataset):
         self: Dataset,
         ratio: float,
         op: PoisonOp,
-        *,
+        # *,
         seed: int,
         target_classes: Optional[List[str]] = None,
     ) -> int:

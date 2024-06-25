@@ -232,11 +232,20 @@ class Experiment:
 
     def run(self, **ray_kwargs) -> None:
         """Run the experiment."""
-        init_kwargs = (ray_kwargs or {}) | {
-            "ignore_reinit_error": True,
-            # "local_mode": True,
-            "num_gpus": len(tf.config.list_physical_devices("GPU")),
-        }
+        import sys
+
+        gettrace = getattr(sys, "gettrace", None)
+        init_kwargs = (
+            (ray_kwargs or {})
+            | {
+                "ignore_reinit_error": True,
+                "num_gpus": len(tf.config.list_physical_devices("GPU")),
+            }
+            # | {"local_mode": True}  # in debugger
+            # if gettrace is not None and gettrace()
+            # else {}
+        )
+
         ray.init(**init_kwargs)
 
         for pool in self.pools:

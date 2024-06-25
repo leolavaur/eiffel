@@ -11,7 +11,7 @@ from typing import Any, Callable, Optional, cast
 import numpy as np
 import pandas as pd
 import ray
-from flwr.client import NumPyClient, Client
+from flwr.client import Client, NumPyClient
 from flwr.common import Config, Scalar
 from flwr.simulation.ray_transport.utils import enable_tf_gpu_growth
 from keras.callbacks import History
@@ -256,11 +256,19 @@ class EiffelClient(NumPyClient):
         assert self.poison_ins is not None
 
         self.data_holder.poison.remote(
-            "train", task.fraction, task.operation, self.poison_ins.target, self.seed
+            "train",
+            task.fraction,
+            task.operation,
+            seed=self.seed,
+            target_classes=self.poison_ins.target,
         )
         if self.poison_ins.poison_eval:
             self.data_holder.poison.remote(
-                "test", task.fraction, task.operation, self.poison_ins.target, self.seed
+                "test",
+                task.fraction,
+                task.operation,
+                seed=self.seed,
+                target_classes=self.poison_ins.target,
             )
 
 

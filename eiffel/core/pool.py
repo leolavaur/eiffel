@@ -1,5 +1,6 @@
 """Client pool API for Eiffel."""
 
+import logging
 import random
 from typing import Callable, Optional
 
@@ -17,6 +18,8 @@ from eiffel.datasets.poisoning import PoisonIns, PoisonTask
 from eiffel.utils.time import timeit
 
 from ..utils.typing import EiffelCID
+
+logger = logging.getLogger(__name__)
 
 
 class Pool:
@@ -88,6 +91,10 @@ class Pool:
             raise ValueError(
                 "Invalid conditions for attack scenarios: "
                 f"`{n_malicious = }`, yet attack is `None`."
+            )
+        elif n_malicious == 0 and attack is not None:
+            logger.warning(
+                "Ignoring attack instructions: no malicious clients in the pool."
             )
         malicious_cids = [f"{pool_id}_malicious_{i}" for i in range(n_malicious)]
 
