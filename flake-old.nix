@@ -7,7 +7,7 @@
 
     flake-utils.url = "github:numtide/flake-utils";
 
-    poetry2nix.url = "github:phdcybersec/poetry2nix";
+    poetry2nix.url = "github:nix-community/poetry2nix/0efcdb97e46d039f5c1954ff9e06903efb397911";
   };
 
   outputs = { self, nixpkgs, flake-utils, poetry2nix, ... }:
