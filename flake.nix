@@ -99,29 +99,37 @@
         
         devShells = {
         
-          default = with pkgs; mkShellNoCC {
-            packages = [
-              # this package            
-              eiffel-env
+          default = with pkgs; 
+            if 
+              stdenv.isDarwin 
+            then 
+              abort "eiffel is currenlt not supported on MacOS" 
+            else 
+              mkShellNoCC {
+                
+                buildInputs = [
+                  # Eiffel and Python dependencies
+                  eiffel-env
+                  
+                  # Shell environment
+                  getopt
+                  bintools
+                  coreutils
+                ];
 
-              # development dependencies
-              poetry
-            ];
+                shellHook = ''
+                  export VSCODE_PYTHON_PATH=${eiffel}/bin/python
+                '' + (if stdenv.isLinux then ''
+                  export LD_LIBRARY_PATH=/run/opengl-driver/lib:${ lib.strings.concatStringsSep ":" [
+                      "${cudaPackages.cudatoolkit}/lib"
+                      "${cudaPackages.cudatoolkit.lib}/lib"
+                      "${cudaPackages.cudnn}/lib"
+                      "${cudaPackages.cudatoolkit}/nvvm/libdevice/"
+                    ] }
+                  export XLA_FLAGS=--xla_gpu_cuda_data_dir=${cudaPackages.cudatoolkit}
+                '' else "");
 
-            shellHook = ''
-              export EIFFEL_PYTHON_PATH=${eiffel-env}/bin/python
-            '' + (if stdenv.isLinux then ''
-              export LD_LIBRARY_PATH=${ lib.strings.concatStringsSep ":" [
-                  "${cudaPackages.cudatoolkit}/lib"
-                  "${cudaPackages.cudatoolkit.lib}/lib"
-                  "${cudaPackages.cudnn}/lib"
-                  "${cudaPackages.cudatoolkit}/nvvm/libdevice/"
-                ] }
-              
-              export XLA_FLAGS=--xla_gpu_cuda_data_dir=${cudaPackages.cudatoolkit}
-            '' else "");
-          };
-
+                };
         };
 
         packages = rec {
