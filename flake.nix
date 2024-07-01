@@ -103,7 +103,7 @@
             if 
               stdenv.isDarwin 
             then 
-              abort "eiffel is currenlt not supported on MacOS" 
+              abort "eiffel is currently not supported on MacOS" 
             else 
               mkShellNoCC {
                 
@@ -118,6 +118,7 @@
                 ];
 
                 shellHook = ''
+                  export PYTHONPATH="$(realpath .):$PYTHONPATH";
                   export VSCODE_PYTHON_PATH=${eiffel}/bin/python
                 '' + (if stdenv.isLinux then ''
                   export LD_LIBRARY_PATH=/run/opengl-driver/lib:${ lib.strings.concatStringsSep ":" [
